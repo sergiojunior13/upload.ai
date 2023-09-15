@@ -14,6 +14,7 @@ upload-ai-web/pnpm-debug.log*
 upload-ai-web/lerna-debug.log*
 
 upload-ai-web/node_modules
+upload-ai-web/.env
 upload-ai-web/dist
 upload-ai-web/dist-ssr
 upload-ai-web/*.local

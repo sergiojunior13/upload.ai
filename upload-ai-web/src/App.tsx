@@ -1,5 +1,4 @@
 import { Button } from "./components/ui/button";
-import { Label } from "./components/ui/label";
 import {
   Select,
   SelectContent,
@@ -11,12 +10,13 @@ import { Separator } from "./components/ui/separator";
 import { Slider } from "./components/ui/slider";
 import { Textarea } from "./components/ui/textarea";
 
-import { Github, FileVideo, Upload, Wand2 } from "lucide-react";
+import { Github, Wand2 } from "lucide-react";
+import { VideoInputForm } from "./components/video-input-form";
 
 export function App() {
   return (
     <div className="min-h-screen flex flex-col">
-      <div className="px-6 py-3 flex items-center justify-between border-b">
+      <div className="px-6 py-3 flex flex-wrap items-center justify-between border-b">
         <h1 className="text-xl font-bold">upload.ai</h1>
 
         <div className="flex items-center gap-3">
@@ -55,38 +55,7 @@ export function App() {
           </div>
         </div>
         <aside className="md:w-80 space-y-6">
-          <form className="space-y-6">
-            <label
-              htmlFor="video"
-              className="border flex rounded-md aspect-video cursor-pointer border-dashed text-sm flex-col items-center justify-center gap-2 text-muted-foreground hover:bg-muted"
-            >
-              <FileVideo className="w-4 h-4" />
-              Selecione um vídeo
-            </label>
-
-            <input
-              type="file"
-              id="video"
-              accept="video/mp4"
-              className="sr-only"
-            />
-
-            <Separator />
-
-            <div className="space-y-2">
-              <Label htmlFor="transcription_prompt">
-                Prompt de transcrição
-              </Label>
-              <Textarea
-                id="transcription_prompt"
-                className="h-20 resize-none leading-relaxed"
-                placeholder="Inclua palavras-chave mencionadas no vídeo separadas por vírgula (,)"
-              />
-            </div>
-            <Button type="submit" className="w-full bg-primary">
-              Carregar Video <Upload className="h-4 w-4 ml-2" />
-            </Button>
-          </form>
+          <VideoInputForm />
 
           <Separator />
 
