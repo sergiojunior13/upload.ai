@@ -3,9 +3,27 @@ import { useState, useRef, useMemo } from "react";
 import { convertVideoToAudio } from "@/utils/convert-video-to-audio";
 
 import { api } from "@/lib/axios";
+import { VideoInputFormProps } from "@/components/video-input-form";
 
-export function useVideoInput() {
+type StatusProps =
+  | "waiting"
+  | "converting"
+  | "uploading"
+  | "generating"
+  | "success"
+  | "error";
+
+export const uploadStatusMessages = {
+  converting: "Convertendo vídeo...",
+  uploading: "Carregando...",
+  generating: "Transcrevendo...",
+  success: "Sucesso!",
+  error: "Erro!",
+};
+
+export function useVideoInput({ onVideoUploaded }: VideoInputFormProps) {
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<StatusProps>("waiting");
   const promptInputRef = useRef<HTMLTextAreaElement>(null);
 
   function handleFileSelected(event: React.ChangeEvent<HTMLInputElement>) {
@@ -29,20 +47,42 @@ export function useVideoInput() {
       return;
     }
 
+    setUploadStatus("converting");
     const audioFile = await convertVideoToAudio(videoFile);
+    const data = transformAudioToFormData(audioFile);
 
-    const videoData = new FormData();
-    videoData.append("file", audioFile);
+    setUploadStatus("uploading");
+    const { video } = await uploadVideoAudioToDataBase(data);
 
-    const apiResponse = await api.post("/videos", videoData);
+    setUploadStatus("generating");
+    const videoId: string = video.id;
+    generateTranscriptionFromVideo(videoId, prompt);
 
-    const videoId = apiResponse.data.video.id;
+    setUploadStatus("success");
+    console.log("Finalizou");
 
+    onVideoUploaded(videoId);
+  }
+
+  function transformAudioToFormData(audio: File) {
+    const data = new FormData();
+    data.append("file", audio);
+
+    return data;
+  }
+
+  async function uploadVideoAudioToDataBase(data: FormData) {
+    const apiResponse = await api.post("/videos", data);
+    return apiResponse.data;
+  }
+
+  async function generateTranscriptionFromVideo(
+    videoId: string,
+    prompt?: string
+  ) {
     await api.post(`/videos/${videoId}/transcription`, {
       prompt,
     });
-
-    console.log("Finalizou");
   }
 
   const previewURL = useMemo(() => {
@@ -58,5 +98,6 @@ export function useVideoInput() {
     handleUploadVideo,
     previewURL,
     promptInputRef,
+    uploadStatus,
   };
 }

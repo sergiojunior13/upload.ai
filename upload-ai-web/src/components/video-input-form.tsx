@@ -1,16 +1,24 @@
-import { Label } from "@radix-ui/react-label";
-import { Separator } from "@radix-ui/react-select";
-
 import { FileVideo, Upload } from "lucide-react";
 
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
+import { Label } from "./ui/label";
+import { Separator } from "./ui/separator";
 
-import { useVideoInput } from "@/hooks/video-input-hook";
+import { uploadStatusMessages, useVideoInput } from "@/hooks/video-input-hook";
 
-export function VideoInputForm() {
-  const { handleFileSelected, handleUploadVideo, previewURL, promptInputRef } =
-    useVideoInput();
+export interface VideoInputFormProps {
+  onVideoUploaded: (videoId: string) => void;
+}
+
+export function VideoInputForm({ onVideoUploaded }: VideoInputFormProps) {
+  const {
+    handleFileSelected,
+    handleUploadVideo,
+    previewURL,
+    promptInputRef,
+    uploadStatus,
+  } = useVideoInput({ onVideoUploaded });
 
   return (
     <form onSubmit={handleUploadVideo} className="space-y-6">
@@ -47,12 +55,25 @@ export function VideoInputForm() {
         <Textarea
           id="transcription_prompt"
           ref={promptInputRef}
+          disabled={uploadStatus !== "waiting"}
           className="h-20 resize-none leading-relaxed"
           placeholder="Inclua palavras-chave mencionadas no vídeo separadas por vírgula (,)"
         />
       </div>
-      <Button type="submit" className="w-full bg-primary">
-        Carregar Video <Upload className="h-4 w-4 ml-2" />
+      <Button
+        disabled={uploadStatus !== "waiting"}
+        data-success={uploadStatus === "success"}
+        type="submit"
+        className="w-full bg-accent-foreground hover:bg-accent-foreground/60 text-accent data-[success='true']:bg-primary"
+      >
+        {uploadStatus === "waiting" ? (
+          <>
+            Carregar vídeo
+            <Upload className="h-4 w-4 ml-2" />
+          </>
+        ) : (
+          uploadStatusMessages[uploadStatus]
+        )}
       </Button>
     </form>
   );

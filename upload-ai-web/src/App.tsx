@@ -1,19 +1,39 @@
 import { Button } from "./components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./components/ui/select";
 import { Separator } from "./components/ui/separator";
 import { Slider } from "./components/ui/slider";
 import { Textarea } from "./components/ui/textarea";
+import { Label } from "./components/ui/label";
 
 import { Github, Wand2 } from "lucide-react";
 import { VideoInputForm } from "./components/video-input-form";
+import { PromptSelect } from "./components/prompt-select";
+import { useState } from "react";
+
+import { useCompletion } from "ai/react";
+import { IAModelSelect } from "./components/ia-model-select";
 
 export function App() {
+  const [temperature, setTemperature] = useState(0.5);
+  const [videoId, setVideoId] = useState<string | null>(null);
+
+  const {
+    input,
+    setInput,
+    handleInputChange,
+    completion,
+    isLoading,
+    handleSubmit,
+  } = useCompletion({
+    api: `${import.meta.env.VITE_API_URL}/ai/complete`,
+    body: {
+      videoId,
+      temperature,
+    },
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
   return (
     <div className="min-h-screen flex flex-col">
       <div className="px-6 py-3 flex flex-wrap items-center justify-between border-b">
@@ -25,11 +45,16 @@ export function App() {
           </span>
 
           <Separator orientation="vertical" className="h-6" />
-
-          <Button variant="outline">
-            <Github className="w-4 h-4 mr-2" />
-            Github
-          </Button>
+          <a
+            href="https://github.com/sergiojunior13/upload.ai"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button variant="outline">
+              <Github className="w-4 h-4 mr-2" />
+              Github
+            </Button>
+          </a>
         </div>
       </div>
 
@@ -37,13 +62,16 @@ export function App() {
         <div className="flex flex-col flex-1 gap-4">
           <div className="grid grid-rows-2 gap-4 flex-1">
             <Textarea
-              className="resize-none p-5 leading-relaxed"
+              className="resize-none p-5 leading-relaxed "
               placeholder="Inclua o prompt para a IA..."
+              value={input}
+              onChange={handleInputChange}
             />
             <Textarea
               className="resize-none p-5 leading-relaxed"
               placeholder="Resultado gerado pela IA..."
               readOnly
+              value={completion}
             />
 
             <p className="text-sm text-muted-foreground">
@@ -55,51 +83,37 @@ export function App() {
           </div>
         </div>
         <aside className="md:w-80 space-y-6">
-          <VideoInputForm />
+          <VideoInputForm onVideoUploaded={setVideoId} />
 
           <Separator />
 
-          <form className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="ia_model_select">Prompt</label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um prompt..." />
-                </SelectTrigger>
+              <Label htmlFor="ia_model_select">Prompt</Label>
+              <PromptSelect onSelectedPromptChange={setInput} />
 
-                <SelectContent id="ia_model_select">
-                  <SelectItem value="title">Título do YouTube</SelectItem>
-                  <SelectItem value="description">
-                    Descrição do YouTube
-                  </SelectItem>
-                </SelectContent>
-              </Select>
               <span className="block text-xs text-muted-foreground italic">
                 Você poderá customizar essa opção em breve.
               </span>
             </div>
             <div className="space-y-2">
-              <label htmlFor="ia_model_select">Modelo</label>
-              <Select disabled defaultValue="gpt3.5">
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-
-                <SelectContent id="ia_model_select">
-                  <SelectItem value="gpt3.5">GPT 3.5-turbo 16k</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="ia_model_select">Modelo</Label>
+              <IAModelSelect />
               <span className="block text-xs text-muted-foreground italic">
                 Você poderá customizar essa opção em breve.
               </span>
             </div>
 
-            <Separator />
-
             <div className="space-y-2">
-              <label htmlFor="ia_model_select">Temperatura</label>
+              <Label htmlFor="ia_model_select">Temperatura</Label>
 
-              <Slider min={0} max={1} step={0.1} />
+              <Slider
+                min={0}
+                max={1}
+                step={0.1}
+                value={[temperature]}
+                onValueChange={value => setTemperature(value[0])}
+              />
 
               <span className="block text-xs text-muted-foreground italic">
                 Valores mais altos tendem a deixar o resultado mais criativo
@@ -109,7 +123,7 @@ export function App() {
 
             <Separator />
 
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={isLoading}>
               Executar <Wand2 className="w-4 h-4 ml-2" />
             </Button>
           </form>
