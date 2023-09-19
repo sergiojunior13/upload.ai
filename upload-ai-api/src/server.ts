@@ -6,7 +6,12 @@ import { uploadVideoRoute } from "./routes/upload-video";
 import { createTranscriptionRoute } from "./routes/create-transcripion";
 import { generateAICompletionRoute } from "./routes/generate-ai-completion";
 
+import "dotenv/config";
+
 const app = fastify();
+
+const host = ("RENDER" in process.env) ? `0.0.0.0` : `localhost`;
+const port = process.env.PORT || 3333
 
 app.register(fastifyCors, { origin: "*" });
 
@@ -15,6 +20,6 @@ app.register(uploadVideoRoute);
 app.register(createTranscriptionRoute);
 app.register(generateAICompletionRoute);
 
-app.listen({ port: 3333 }).then(() => {
-  console.log("HTTP Server Running");
+app.listen({ port, host }).then(() => {
+  console.log(`HTTP Server Running in ${host}:${port}`);
 });
